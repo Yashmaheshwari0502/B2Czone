@@ -1,268 +1,151 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useEffect, useState } from 'react';
+import API from '../api/axios';
+import ProductCard from '../components/ProductCard';
 
-const Register = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    phone: '',
-    address: {
-      street: '',
-      city: '',
-      state: '',
-      pincode: ''
-    }
+const Products = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [sortBy, setSortBy] = useState('');
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [productsRes, categoriesRes] = await Promise.all([
+          API.get('/products'),
+          API.get('/categories')
+        ]);
+        
+        setProducts(productsRes.data.data);
+        setCategories(categoriesRes.data.data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const filteredProducts = products.filter(product => 
+    selectedCategory ? product.category._id === selectedCategory : true
+  );
+
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    if (sortBy === 'price-low') return a.price - b.price;
+    if (sortBy === 'price-high') return b.price - a.price;
+    if (sortBy === 'name') return a.name.localeCompare(b.name);
+    return 0;
   });
-  const { register, error, clearError } = useAuth();
-  const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    
-    if (name.includes('.')) {
-      const [parent, child] = name.split('.');
-      setFormData(prev => ({
-        ...prev,
-        [parent]: {
-          ...prev[parent],
-          [child]: value
-        }
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
-    
-    if (error) clearError();
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (formData.password !== formData.confirmPassword) {
-      clearError();
-      return;
-    }
-    
-    const { confirmPassword, ...userData } = formData;
-    const result = await register(userData);
-    
-    if (result.success) {
-      navigate('/');
-    }
-  };
+  if (loading) {
+    return <div style={loadingStyle}>Loading products...</div>;
+  }
 
   return (
     <div style={containerStyle}>
-      <div style={formContainerStyle}>
-        <h2 style={titleStyle}>Create Account</h2>
-        
-        {error && <div style={errorStyle}>{error}</div>}
-        
-        <form onSubmit={handleSubmit} style={formStyle}>
-          <div style={inputGroupStyle}>
-            <label style={labelStyle}>Full Name</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              style={inputStyle}
-            />
-          </div>
-          
-          <div style={inputGroupStyle}>
-            <label style={labelStyle}>Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              style={inputStyle}
-            />
-          </div>
-          
-          <div style={inputGroupStyle}>
-            <label style={labelStyle}>Phone</label>
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              required
-              style={inputStyle}
-            />
-          </div>
-          
-          <div style={inputGroupStyle}>
-            <label style={labelStyle}>Password</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              style={inputStyle}
-            />
-          </div>
-          
-          <div style={inputGroupStyle}>
-            <label style={labelStyle}>Confirm Password</label>
-            <input
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-              style={inputStyle}
-            />
-          </div>
-          
-          <div style={inputGroupStyle}>
-            <label style={labelStyle}>Street Address</label>
-            <input
-              type="text"
-              name="address.street"
-              value={formData.address.street}
-              onChange={handleChange}
-              required
-              style={inputStyle}
-            />
-          </div>
-          
-          <div style={inputGroupStyle}>
-            <label style={labelStyle}>City</label>
-            <input
-              type="text"
-              name="address.city"
-              value={formData.address.city}
-              onChange={handleChange}
-              required
-              style={inputStyle}
-            />
-          </div>
-          
-          <div style={inputGroupStyle}>
-            <label style={labelStyle}>State</label>
-            <input
-              type="text"
-              name="address.state"
-              value={formData.address.state}
-              onChange={handleChange}
-              required
-              style={inputStyle}
-            />
-          </div>
-          
-          <div style={inputGroupStyle}>
-            <label style={labelStyle}>Pincode</label>
-            <input
-              type="text"
-              name="address.pincode"
-              value={formData.address.pincode}
-              onChange={handleChange}
-              required
-              style={inputStyle}
-            />
-          </div>
-          
-          <button type="submit" style={buttonStyle}>
-            Register
-          </button>
-        </form>
-        
-        <p style={loginTextStyle}>
-          Already have an account? <Link to="/login" style={linkStyle}>Login here</Link>
-        </p>
+      <div style={filtersStyle}>
+        <div style={filterGroupStyle}>
+          <label style={labelStyle}>Category:</label>
+          <select 
+            value={selectedCategory} 
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            style={selectStyle}
+          >
+            <option value="">All Categories</option>
+            {categories.map(category => (
+              <option key={category._id} value={category._id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div style={filterGroupStyle}>
+          <label style={labelStyle}>Sort By:</label>
+          <select 
+            value={sortBy} 
+            onChange={(e) => setSortBy(e.target.value)}
+            style={selectStyle}
+          >
+            <option value="">Default</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+            <option value="name">Name</option>
+          </select>
+        </div>
       </div>
+
+      <div style={productsGridStyle}>
+        {sortedProducts.map(product => (
+          <ProductCard key={product._id} product={product} />
+        ))}
+      </div>
+
+      {sortedProducts.length === 0 && (
+        <div style={noProductsStyle}>
+          <h3>No products found</h3>
+          <p>Try selecting a different category or check back later.</p>
+        </div>
+      )}
     </div>
   );
 };
 
-// Reuse styles from Login component
 const containerStyle = {
+  padding: '2rem',
+  maxWidth: '1200px',
+  margin: '0 auto',
+};
+
+const loadingStyle = {
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
-  minHeight: '60vh',
-  padding: '2rem 0',
+  height: '50vh',
+  fontSize: '1.2rem',
 };
 
-const formContainerStyle = {
-  backgroundColor: 'white',
-  padding: '2rem',
-  borderRadius: '8px',
-  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-  width: '100%',
-  maxWidth: '400px',
-};
-
-const titleStyle = {
-  textAlign: 'center',
+const filtersStyle = {
+  display: 'flex',
+  gap: '2rem',
   marginBottom: '2rem',
-  color: '#333',
+  padding: '1rem',
+  backgroundColor: 'white',
+  borderRadius: '8px',
+  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
 };
 
-const formStyle = {
+const filterGroupStyle = {
   display: 'flex',
   flexDirection: 'column',
-};
-
-const inputGroupStyle = {
-  marginBottom: '1rem',
+  gap: '0.5rem',
 };
 
 const labelStyle = {
-  display: 'block',
-  marginBottom: '0.5rem',
-  fontWeight: '500',
+  fontWeight: '600',
   color: '#333',
-  fontSize: '0.9rem',
 };
 
-const inputStyle = {
-  width: '100%',
+const selectStyle = {
   padding: '0.5rem',
   border: '1px solid #ddd',
   borderRadius: '4px',
-  fontSize: '0.9rem',
-};
-
-const buttonStyle = {
-  padding: '0.75rem',
-  backgroundColor: '#007bff',
-  color: 'white',
-  border: 'none',
-  borderRadius: '4px',
   fontSize: '1rem',
-  cursor: 'pointer',
-  marginTop: '1rem',
-  marginBottom: '1rem',
 };
 
-const errorStyle = {
-  backgroundColor: '#f8d7da',
-  color: '#721c24',
-  padding: '0.75rem',
-  borderRadius: '4px',
-  marginBottom: '1rem',
+const productsGridStyle = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+  gap: '2rem',
 };
 
-const loginTextStyle = {
+const noProductsStyle = {
   textAlign: 'center',
+  padding: '3rem',
   color: '#666',
 };
 
-const linkStyle = {
-  color: '#007bff',
-  textDecoration: 'none',
-};
-
-export default Register;
+export default Products;

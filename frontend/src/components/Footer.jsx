@@ -4,8 +4,8 @@ const Footer = () => {
       <div style={containerStyle}>
         <div style={contentStyle}>
           <div style={sectionStyle}>
-            <h3 style={footerTitleStyle}>Blinkit</h3>
-            <p style={footerTextStyle}>Groceries delivered in minutes</p>
+            <h3 style={footerTitleStyle}>B2Czone</h3>
+            <p style={footerTextStyle}>Home making material delivered in minutes</p>
           </div>
           
           <div style={sectionStyle}>
@@ -19,7 +19,7 @@ const Footer = () => {
         </div>
         
         <div style={copyrightStyle}>
-          <p style={copyrightTextStyle}>&copy; 2023 Blinkit. All rights reserved.</p>
+          <p style={copyrightTextStyle}>&copy; 2025 B2Czone. All rights reserved.</p>
         </div>
       </div>
     </footer>

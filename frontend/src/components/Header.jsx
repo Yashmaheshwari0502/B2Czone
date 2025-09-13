@@ -12,7 +12,7 @@ const Header = () => {
     <header style={headerStyle}>
       <div style={containerStyle}>
         <Link to="/" style={logoStyle}>
-          <h1 style={logoTextStyle}>Blinkit</h1>
+          <h1 style={logoTextStyle}>B2Czone</h1>
         </Link>
 
         <nav style={navStyle}>

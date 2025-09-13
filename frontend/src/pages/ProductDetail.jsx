@@ -1,268 +1,227 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import API from '../api/axios';
+import { useCart } from '../context/CartContext';
 
-const Register = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    phone: '',
-    address: {
-      street: '',
-      city: '',
-      state: '',
-      pincode: ''
-    }
-  });
-  const { register, error, clearError } = useAuth();
-  const navigate = useNavigate();
+const ProductDetail = () => {
+  const { id } = useParams();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [quantity, setQuantity] = useState(1);
+  const { addToCart } = useCart();
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    
-    if (name.includes('.')) {
-      const [parent, child] = name.split('.');
-      setFormData(prev => ({
-        ...prev,
-        [parent]: {
-          ...prev[parent],
-          [child]: value
-        }
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
-    
-    if (error) clearError();
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const response = await API.get(`/products/${id}`);
+        setProduct(response.data.data);
+      } catch (error) {
+        console.error('Error fetching product:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [id]);
+
+  const handleAddToCart = () => {
+    addToCart(product, quantity);
+    // Show success message or notification
+    alert('Product added to cart!');
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (formData.password !== formData.confirmPassword) {
-      clearError();
-      return;
-    }
-    
-    const { confirmPassword, ...userData } = formData;
-    const result = await register(userData);
-    
-    if (result.success) {
-      navigate('/');
-    }
-  };
+  if (loading) {
+    return <div style={loadingStyle}>Loading product...</div>;
+  }
+
+  if (!product) {
+    return <div style={notFoundStyle}>Product not found</div>;
+  }
 
   return (
     <div style={containerStyle}>
-      <div style={formContainerStyle}>
-        <h2 style={titleStyle}>Create Account</h2>
+      <div style={productDetailStyle}>
+        <div style={imageContainerStyle}>
+          <img 
+            src={product.image} 
+            alt={product.name}
+            style={imageStyle}
+          />
+        </div>
         
-        {error && <div style={errorStyle}>{error}</div>}
-        
-        <form onSubmit={handleSubmit} style={formStyle}>
-          <div style={inputGroupStyle}>
-            <label style={labelStyle}>Full Name</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              style={inputStyle}
-            />
+        <div style={infoStyle}>
+          <h1 style={titleStyle}>{product.name}</h1>
+          <p style={descriptionStyle}>{product.description}</p>
+          
+          <div style={priceContainerStyle}>
+            <span style={priceStyle}>₹{product.price}</span>
+            {product.originalPrice && product.originalPrice > product.price && (
+              <span style={originalPriceStyle}>₹{product.originalPrice}</span>
+            )}
           </div>
           
-          <div style={inputGroupStyle}>
-            <label style={labelStyle}>Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              style={inputStyle}
-            />
+          <div style={stockStyle}>
+            {product.stock > 0 ? `In stock (${product.stock})` : 'Out of stock'}
           </div>
           
-          <div style={inputGroupStyle}>
-            <label style={labelStyle}>Phone</label>
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              required
-              style={inputStyle}
-            />
+          <div style={quantityStyle}>
+            <label style={quantityLabelStyle}>Quantity:</label>
+            <select 
+              value={quantity} 
+              onChange={(e) => setQuantity(parseInt(e.target.value))}
+              style={quantitySelectStyle}
+              disabled={product.stock === 0}
+            >
+              {[...Array(Math.min(product.stock, 10))].map((_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {i + 1}
+                </option>
+              ))}
+            </select>
           </div>
           
-          <div style={inputGroupStyle}>
-            <label style={labelStyle}>Password</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              style={inputStyle}
-            />
-          </div>
-          
-          <div style={inputGroupStyle}>
-            <label style={labelStyle}>Confirm Password</label>
-            <input
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-              style={inputStyle}
-            />
-          </div>
-          
-          <div style={inputGroupStyle}>
-            <label style={labelStyle}>Street Address</label>
-            <input
-              type="text"
-              name="address.street"
-              value={formData.address.street}
-              onChange={handleChange}
-              required
-              style={inputStyle}
-            />
-          </div>
-          
-          <div style={inputGroupStyle}>
-            <label style={labelStyle}>City</label>
-            <input
-              type="text"
-              name="address.city"
-              value={formData.address.city}
-              onChange={handleChange}
-              required
-              style={inputStyle}
-            />
-          </div>
-          
-          <div style={inputGroupStyle}>
-            <label style={labelStyle}>State</label>
-            <input
-              type="text"
-              name="address.state"
-              value={formData.address.state}
-              onChange={handleChange}
-              required
-              style={inputStyle}
-            />
-          </div>
-          
-          <div style={inputGroupStyle}>
-            <label style={labelStyle}>Pincode</label>
-            <input
-              type="text"
-              name="address.pincode"
-              value={formData.address.pincode}
-              onChange={handleChange}
-              required
-              style={inputStyle}
-            />
-          </div>
-          
-          <button type="submit" style={buttonStyle}>
-            Register
+          <button 
+            onClick={handleAddToCart}
+            disabled={product.stock === 0}
+            style={addToCartButtonStyle}
+          >
+            Add to Cart
           </button>
-        </form>
-        
-        <p style={loginTextStyle}>
-          Already have an account? <Link to="/login" style={linkStyle}>Login here</Link>
-        </p>
+          
+          <div style={detailsStyle}>
+            <h3>Product Details</h3>
+            <p><strong>Brand:</strong> {product.brand || 'Not specified'}</p>
+            <p><strong>Unit:</strong> {product.unit}</p>
+            <p><strong>Category:</strong> {product.category?.name}</p>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
-// Reuse styles from Login component
 const containerStyle = {
+  padding: '2rem',
+  maxWidth: '1200px',
+  margin: '0 auto',
+};
+
+const loadingStyle = {
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
-  minHeight: '60vh',
-  padding: '2rem 0',
+  height: '50vh',
+  fontSize: '1.2rem',
 };
 
-const formContainerStyle = {
+const notFoundStyle = {
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  height: '50vh',
+  fontSize: '1.5rem',
+  color: '#666',
+};
+
+const productDetailStyle = {
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr',
+  gap: '3rem',
   backgroundColor: 'white',
   padding: '2rem',
   borderRadius: '8px',
-  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+};
+
+const imageContainerStyle = {
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+};
+
+const imageStyle = {
   width: '100%',
   maxWidth: '400px',
+  height: 'auto',
+  borderRadius: '8px',
+};
+
+const infoStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '1.5rem',
 };
 
 const titleStyle = {
-  textAlign: 'center',
-  marginBottom: '2rem',
+  fontSize: '2rem',
   color: '#333',
-};
-
-const formStyle = {
-  display: 'flex',
-  flexDirection: 'column',
-};
-
-const inputGroupStyle = {
-  marginBottom: '1rem',
-};
-
-const labelStyle = {
-  display: 'block',
   marginBottom: '0.5rem',
-  fontWeight: '500',
-  color: '#333',
-  fontSize: '0.9rem',
 };
 
-const inputStyle = {
-  width: '100%',
+const descriptionStyle = {
+  fontSize: '1.1rem',
+  color: '#666',
+  lineHeight: '1.6',
+};
+
+const priceContainerStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '1rem',
+};
+
+const priceStyle = {
+  fontSize: '2rem',
+  fontWeight: 'bold',
+  color: '#007bff',
+};
+
+const originalPriceStyle = {
+  fontSize: '1.2rem',
+  color: '#999',
+  textDecoration: 'line-through',
+};
+
+const stockStyle = {
+  fontSize: '1.1rem',
+  color: '#28a745',
+  fontWeight: '600',
+};
+
+const quantityStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '1rem',
+};
+
+const quantityLabelStyle = {
+  fontWeight: '600',
+  color: '#333',
+};
+
+const quantitySelectStyle = {
   padding: '0.5rem',
   border: '1px solid #ddd',
   borderRadius: '4px',
-  fontSize: '0.9rem',
+  fontSize: '1rem',
 };
 
-const buttonStyle = {
-  padding: '0.75rem',
+const addToCartButtonStyle = {
+  padding: '1rem 2rem',
   backgroundColor: '#007bff',
   color: 'white',
   border: 'none',
   borderRadius: '4px',
-  fontSize: '1rem',
+  fontSize: '1.1rem',
   cursor: 'pointer',
-  marginTop: '1rem',
-  marginBottom: '1rem',
+  fontWeight: '600',
 };
 
-const errorStyle = {
-  backgroundColor: '#f8d7da',
-  color: '#721c24',
-  padding: '0.75rem',
-  borderRadius: '4px',
-  marginBottom: '1rem',
+const detailsStyle = {
+  marginTop: '2rem',
+  paddingTop: '2rem',
+  borderTop: '1px solid #eee',
 };
 
-const loginTextStyle = {
-  textAlign: 'center',
-  color: '#666',
-};
-
-const linkStyle = {
-  color: '#007bff',
-  textDecoration: 'none',
-};
-
-export default Register;
+export default ProductDetail;
