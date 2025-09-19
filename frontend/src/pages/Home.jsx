@@ -7,9 +7,9 @@ const Home = () => {
       <section style={heroSectionStyle}>
         <div style={containerStyle}>
           <div style={heroContentStyle}>
-            <h1 style={heroTitleStyle}>Groceries Delivered in Minutes</h1>
+            <h1 style={heroTitleStyle}>Construction essentials Delivered in Minutes</h1>
             <p style={heroSubtitleStyle}>
-              Get fresh groceries, snacks, and household essentials delivered to your doorstep.
+             Hardware, electricals, and plumbing essentials — straight to your doorstep fast and hassle-free
             </p>
             <Link to="/products" style={ctaButtonStyle}>
               Shop Now

@@ -11,6 +11,7 @@ function App() {
       <Router>
         <div className="App">
           <Routes>
+             <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="/admin/login" element={<Login />} />
             <Route path="/admin/dashboard" element={
               <PrivateRoute>

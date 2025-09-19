@@ -1,3 +1,5 @@
+import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaYoutube } from "react-icons/fa";
+
 const Footer = () => {
   return (
     <footer style={footerStyle}>
@@ -5,9 +7,11 @@ const Footer = () => {
         <div style={contentStyle}>
           <div style={sectionStyle}>
             <h3 style={footerTitleStyle}>B2Czone</h3>
-            <p style={footerTextStyle}>Home making material delivered in minutes</p>
+            <p style={footerTextStyle}>
+              Home making material delivered in minutes
+            </p>
           </div>
-          
+
           <div style={sectionStyle}>
             <h4 style={footerSubtitleStyle}>Quick Links</h4>
             <ul style={listStyle}>
@@ -16,10 +20,33 @@ const Footer = () => {
               <li><a href="/contact" style={linkStyle}>Contact</a></li>
             </ul>
           </div>
+
+          <div style={sectionStyle}>
+            <h4 style={footerSubtitleStyle}>Follow Us</h4>
+            <div style={socialIconsStyle}>
+              <a href="https://www.facebook.com/people/B2Czone/61580386042058/" target="_blank" rel="noopener noreferrer" style={iconLinkStyle}>
+                <FaFacebook />
+              </a>
+              <a href="https://www.instagram.com/b2czonenow/?igsh=MWE3dHB0Z2p0dGcxcw%3D%3D&utm_source=qr#" target="_blank" rel="noopener noreferrer" style={iconLinkStyle}>
+                <FaInstagram />
+              </a>
+              <a href="https://www.linkedin.com/company/b2czone/" target="_blank" rel="noopener noreferrer" style={iconLinkStyle}>
+                <FaLinkedin />
+              </a>
+              <a href="https://x.com/B2Czone" target="_blank" rel="noopener noreferrer" style={iconLinkStyle}>
+                <FaTwitter />
+              </a>
+              <a href="https://www.youtube.com/@B2Czone" target="_blank" rel="noopener noreferrer" style={iconLinkStyle}>
+                <FaYoutube />
+              </a>
+            </div>
+          </div>
         </div>
-        
+
         <div style={copyrightStyle}>
-          <p style={copyrightTextStyle}>&copy; 2025 B2Czone. All rights reserved.</p>
+          <p style={copyrightTextStyle}>
+            &copy; 2025 B2Czone. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>
@@ -27,7 +54,7 @@ const Footer = () => {
 };
 
 const containerStyle = {
-  maxWidth: "1200px",
+  width: "100vw",
   margin: "0 auto",
   padding: "0 1rem",
 };
@@ -76,6 +103,17 @@ const linkStyle = {
   color: "#ddd",
   textDecoration: "none",
   lineHeight: "2",
+  transition: "color 0.3s ease",
+};
+
+const socialIconsStyle = {
+  display: "flex",
+  gap: "1rem",
+  fontSize: "1.5rem",
+};
+
+const iconLinkStyle = {
+  color: "#ddd",
   transition: "color 0.3s ease",
 };
 

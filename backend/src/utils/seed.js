@@ -281,29 +281,101 @@ const products = [
   }
 ];
 
-
 const importData = async () => {
   try {
+    console.log('Starting data import...');
+    
     // Clear existing data
-    await Category.deleteMany();
-    await Product.deleteMany();
+    console.log('Clearing existing data...');
+    await Category.deleteMany({});
+    await Product.deleteMany({});
+    console.log('Existing data cleared successfully');
 
     // Add categories
+    console.log('Creating categories...');
     const createdCategories = await Category.insertMany(categories);
+    console.log(`Created ${createdCategories.length} categories`);
     
-    // Update products with category IDs
-    products[0].category = createdCategories[0]._id; // Fruits & Vegetables
-    products[1].category = createdCategories[1]._id; // Dairy & Eggs
+    // Map category names to IDs for easier reference
+    const categoryMap = {};
+    createdCategories.forEach(category => {
+      categoryMap[category.name] = category._id;
+    });
+    
+    // Update products with correct category IDs
+    console.log('Assigning categories to products...');
+    
+    // Sanitary & Plumbing products (indices 0-2)
+    products[0].category = categoryMap['Sanitary & Plumbing']; // Wall Mounted Basin
+    products[1].category = categoryMap['Sanitary & Plumbing']; // Single Lever Faucet
+    products[2].category = categoryMap['Sanitary & Plumbing']; // Floor Mounted Toilet
+    
+    // Electrical & Wiring products (indices 3-5)
+    products[3].category = categoryMap['Electrical & Wiring']; // 16A Power Socket
+    products[4].category = categoryMap['Electrical & Wiring']; // LED Ceiling Light
+    products[5].category = categoryMap['Electrical & Wiring']; // House Wire
+    
+    // Hardware & Tools products (indices 6-7)
+    products[6].category = categoryMap['Hardware & Tools']; // Mortise Lock
+    products[7].category = categoryMap['Hardware & Tools']; // Door Handle Set
+    
+    // Tiles & Flooring products (indices 8-9)
+    products[8].category = categoryMap['Tiles & Flooring']; // Vitrified Floor Tiles
+    products[9].category = categoryMap['Tiles & Flooring']; // Ceramic Wall Tiles
+    
+    // Kitchen & Appliances products (indices 10-11)
+    products[10].category = categoryMap['Kitchen & Appliances']; // Stainless Steel Sink
+    products[11].category = categoryMap['Kitchen & Appliances']; // Modular Kitchen Cabinet
+    
+    // Cement & Construction products (indices 12-13)
+    products[12].category = categoryMap['Cement & Construction']; // OPC 53 Grade Cement
+    products[13].category = categoryMap['Cement & Construction']; // Red Clay Bricks
+    
+    // Pipes & Fittings products (indices 14-16)
+    products[14].category = categoryMap['Pipes & Fittings']; // PVC Pipe 4 inch
+    products[15].category = categoryMap['Pipes & Fittings']; // CPVC Pipe 1/2 inch
+    products[16].category = categoryMap['Pipes & Fittings']; // Pipe Elbow 90 Degree
+    
+    // Paints & Adhesives products (indices 17-18)
+    products[17].category = categoryMap['Paints & Adhesives']; // Exterior Wall Paint
+    products[18].category = categoryMap['Paints & Adhesives']; // Tile Adhesive
+
+    // Verify all products have categories assigned
+    const unassignedProducts = products.filter(product => !product.category);
+    if (unassignedProducts.length > 0) {
+      console.warn(`Warning: ${unassignedProducts.length} products don't have categories assigned`);
+    }
 
     // Add products
-    await Product.insertMany(products);
-
-    console.log('Data Imported!');
-    process.exit();
+    console.log('Creating products...');
+    const createdProducts = await Product.insertMany(products);
+    
+    console.log('\n✅ Data Import Completed Successfully!');
+    console.log(`📁 Categories created: ${createdCategories.length}`);
+    console.log(`📦 Products created: ${createdProducts.length}`);
+    console.log('\nCategory breakdown:');
+    
+    // Show products count per category
+    for (const category of createdCategories) {
+      const count = products.filter(p => p.category.toString() === category._id.toString()).length;
+      console.log(`  • ${category.name}: ${count} products`);
+    }
+    
+    process.exit(0);
   } catch (error) {
+    console.error('\n❌ Error importing data:');
     console.error(error);
     process.exit(1);
   }
 };
+
+// Handle graceful shutdown
+process.on('SIGINT', () => {
+  console.log('\n\n👋 Process interrupted. Closing database connection...');
+  mongoose.connection.close(() => {
+    console.log('Database connection closed.');
+    process.exit(0);
+  });
+});
 
 importData();
